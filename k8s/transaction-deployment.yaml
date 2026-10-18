@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+    kompose.image-pull-policy: IfNotPresent
+    kompose.init.containers.command: '["sh", "-c", "until nc -z transaction-postgres 5432 && nc -z kafka 9092; do sleep 2; done"]'
+    kompose.init.containers.image: busybox:1.36.1
+    kompose.init.containers.name: wait-for-dependencies
+    kompose.service.healthcheck.readiness.http_get_path: /api/transaction/docs
+    kompose.service.healthcheck.readiness.http_get_port: "9002"
+    kompose.version: 1.38.0 (HEAD)
+  labels:
+    io.kompose.service: transaction
+  name: transaction
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: transaction
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+        kompose.image-pull-policy: IfNotPresent
+        kompose.init.containers.command: '["sh", "-c", "until nc -z transaction-postgres 5432 && nc -z kafka 9092; do sleep 2; done"]'
+        kompose.init.containers.image: busybox:1.36.1
+        kompose.init.containers.name: wait-for-dependencies
+        kompose.service.healthcheck.readiness.http_get_path: /api/transaction/docs
+        kompose.service.healthcheck.readiness.http_get_port: "9002"
+        kompose.version: 1.38.0 (HEAD)
+      labels:
+        io.kompose.service: transaction
+    spec:
+      containers:
+        - env:
+            - name: DB_DATABASE
+              value: transaction-db
+            - name: DB_HOST
+              value: transaction-postgres
+            - name: DB_MIGRATIONS_RUN
+              value: "true"
+            - name: DB_PASSWORD
+              value: password
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_TYPE
+              value: postgres
+            - name: DB_USERNAME
+              value: postgres
+            - name: HTTP_PORT
+              value: "9002"
+            - name: KAFKA_CLIENT_BROKERS
+              value: kafka:9092
+          image: oni-lab4-transaction:lab4
+          imagePullPolicy: IfNotPresent
+          name: transaction
+          ports:
+            - containerPort: 9002
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/transaction/docs
+              port: 9002
+      initContainers:
+        - command:
+            - sh
+            - -c
+            - until nc -z transaction-postgres 5432 && nc -z kafka 9092; do sleep 2; done
+          image: busybox:1.36.1
+          name: wait-for-dependencies
+      restartPolicy: Always

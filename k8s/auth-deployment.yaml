@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+    kompose.image-pull-policy: IfNotPresent
+    kompose.init.containers.command: '["sh", "-c", "until nc -z redis 6379 && nc -z account 9000; do sleep 2; done"]'
+    kompose.init.containers.image: busybox:1.36.1
+    kompose.init.containers.name: wait-for-dependencies
+    kompose.service.healthcheck.readiness.http_get_path: /api/auth/docs
+    kompose.service.healthcheck.readiness.http_get_port: "9001"
+    kompose.version: 1.38.0 (HEAD)
+  labels:
+    io.kompose.service: auth
+  name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: auth
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+        kompose.image-pull-policy: IfNotPresent
+        kompose.init.containers.command: '["sh", "-c", "until nc -z redis 6379 && nc -z account 9000; do sleep 2; done"]'
+        kompose.init.containers.image: busybox:1.36.1
+        kompose.init.containers.name: wait-for-dependencies
+        kompose.service.healthcheck.readiness.http_get_path: /api/auth/docs
+        kompose.service.healthcheck.readiness.http_get_port: "9001"
+        kompose.version: 1.38.0 (HEAD)
+      labels:
+        io.kompose.service: auth
+    spec:
+      containers:
+        - env:
+            - name: ACCOUNT_URL
+              value: http://account:9000/api/account
+            - name: HTTP_PORT
+              value: "9001"
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+          image: oni-lab4-auth:lab4
+          imagePullPolicy: IfNotPresent
+          name: auth
+          ports:
+            - containerPort: 9001
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/auth/docs
+              port: 9001
+      initContainers:
+        - command:
+            - sh
+            - -c
+            - until nc -z redis 6379 && nc -z account 9000; do sleep 2; done
+          image: busybox:1.36.1
+          name: wait-for-dependencies
+      restartPolicy: Always

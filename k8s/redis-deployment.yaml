@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+    kompose.image-pull-policy: IfNotPresent
+    kompose.service.healthcheck.readiness.tcp_port: "6379"
+    kompose.version: 1.38.0 (HEAD)
+  labels:
+    io.kompose.service: redis
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: redis
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+        kompose.image-pull-policy: IfNotPresent
+        kompose.service.healthcheck.readiness.tcp_port: "6379"
+        kompose.version: 1.38.0 (HEAD)
+      labels:
+        io.kompose.service: redis
+    spec:
+      containers:
+        - image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            failureThreshold: 20
+            periodSeconds: 5
+            timeoutSeconds: 3
+          name: account-cache-redis
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+      restartPolicy: Always

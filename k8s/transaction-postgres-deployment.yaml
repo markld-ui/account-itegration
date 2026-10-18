@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+    kompose.image-pull-policy: IfNotPresent
+    kompose.service.healthcheck.readiness.tcp_port: "5432"
+    kompose.version: 1.38.0 (HEAD)
+    kompose.volume.size: 1Gi
+  labels:
+    io.kompose.service: transaction-postgres
+  name: transaction-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: transaction-postgres
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+        kompose.image-pull-policy: IfNotPresent
+        kompose.service.healthcheck.readiness.tcp_port: "5432"
+        kompose.version: 1.38.0 (HEAD)
+        kompose.volume.size: 1Gi
+      labels:
+        io.kompose.service: transaction-postgres
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: transaction-db
+            - name: POSTGRES_PASSWORD
+              value: password
+            - name: POSTGRES_USER
+              value: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+                - -d
+                - transaction-db
+            failureThreshold: 20
+            periodSeconds: 5
+            timeoutSeconds: 5
+          name: transaction-db-postgres
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: transaction-postgres-data
+      restartPolicy: Always
+      volumes:
+        - name: transaction-postgres-data
+          persistentVolumeClaim:
+            claimName: transaction-postgres-data

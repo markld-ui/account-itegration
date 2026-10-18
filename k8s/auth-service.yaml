@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+    kompose.image-pull-policy: IfNotPresent
+    kompose.init.containers.command: '["sh", "-c", "until nc -z redis 6379 && nc -z account 9000; do sleep 2; done"]'
+    kompose.init.containers.image: busybox:1.36.1
+    kompose.init.containers.name: wait-for-dependencies
+    kompose.service.healthcheck.readiness.http_get_path: /api/auth/docs
+    kompose.service.healthcheck.readiness.http_get_port: "9001"
+    kompose.version: 1.38.0 (HEAD)
+  labels:
+    io.kompose.service: auth
+  name: auth
+spec:
+  ports:
+    - name: "9001"
+      port: 9001
+      targetPort: 9001
+  selector:
+    io.kompose.service: auth

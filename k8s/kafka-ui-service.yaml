@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+    kompose.image-pull-policy: IfNotPresent
+    kompose.service.healthcheck.readiness.http_get_path: /
+    kompose.service.healthcheck.readiness.http_get_port: "8080"
+    kompose.version: 1.38.0 (HEAD)
+  labels:
+    io.kompose.service: kafka-ui
+  name: kafka-ui
+spec:
+  ports:
+    - name: "18080"
+      port: 18080
+      targetPort: 8080
+  selector:
+    io.kompose.service: kafka-ui

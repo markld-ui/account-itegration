@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+    kompose.image-pull-policy: IfNotPresent
+    kompose.service.healthcheck.readiness.http_get_path: /
+    kompose.service.healthcheck.readiness.http_get_port: "8080"
+    kompose.version: 1.38.0 (HEAD)
+  labels:
+    io.kompose.service: kafka-ui
+  name: kafka-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: kafka-ui
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+        kompose.image-pull-policy: IfNotPresent
+        kompose.service.healthcheck.readiness.http_get_path: /
+        kompose.service.healthcheck.readiness.http_get_port: "8080"
+        kompose.version: 1.38.0 (HEAD)
+      labels:
+        io.kompose.service: kafka-ui
+    spec:
+      containers:
+        - env:
+            - name: DYNAMIC_CONFIG_ENABLED
+              value: "false"
+            - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+              value: kafka:9092
+            - name: KAFKA_CLUSTERS_0_NAME
+              value: local
+          image: provectuslabs/kafka-ui:v0.7.2
+          imagePullPolicy: IfNotPresent
+          name: oni-kafka-ui
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+      restartPolicy: Always

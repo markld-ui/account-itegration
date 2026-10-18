@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f account/docker/docker-compose.yml -o account/k8s/
+    kompose.image-pull-policy: IfNotPresent
+    kompose.service.healthcheck.readiness.tcp_port: "5432"
+    kompose.version: 1.38.0 (HEAD)
+    kompose.volume.size: 1Gi
+    kompose.volume.type: persistentVolumeClaim
+  labels:
+    io.kompose.service: postgres
+  name: postgres
+spec:
+  ports:
+    - name: "5132"
+      port: 5132
+      targetPort: 5432
+    - name: "5432"
+      port: 5432
+      targetPort: 5432
+  selector:
+    io.kompose.service: postgres
