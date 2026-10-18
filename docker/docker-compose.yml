@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: account-db-postgres
+    ports:
+      - "5132:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: account-db
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    container_name: account-cache-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    container_name: account-cache-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "29094:8081"
+    depends_on:
+      - redis
+    restart: unless-stopped
