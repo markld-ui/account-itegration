@@ -62,3 +62,15 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 .github/agents
+
+# Agent instructions and local development context
+.agents/
+.codex/
+.github/agents/
+AGENTS.md
+*.agent.md
+
+# Generated development artifacts
+artifacts/
+test-results/
+playwright-report/
