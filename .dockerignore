@@ -1,0 +1,17 @@
+node_modules
+dist
+coverage
+.git
+.github
+.agents
+.codex
+docker/volumes
+volumes
+.env
+.env.*
+*.log
+*.tsbuildinfo
+test
+tests
+*.spec.ts
+*.e2e-spec.ts
