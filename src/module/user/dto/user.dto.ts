@@ -67,6 +67,11 @@ export class UserDto {
   @IsString()
   email: string;
 
+  @ApiProperty({ description: 'Баланс в копейках', type: String })
+  @Expose()
+  @IsString()
+  balance: string;
+
   constructor(entity: Partial<UserEntity>) {
     Object.assign(
       this,

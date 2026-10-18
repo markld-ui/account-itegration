@@ -8,12 +8,21 @@ import { UserDto } from './dto/user.dto.js';
 import GetUserFilterDto from './dto/get-users-filter.dto.js';
 import { UserRepository } from './user.repository.js';
 import { REDIS_TOKEN } from '../../config/redis/redis.constant.js';
+import { KafkaService } from '../../config/kafka/kafka.service.js';
+import {
+  BalanceChangedStatus,
+  EventBalanceChangedData,
+  EventNameEnum,
+  EventTransactionSavedData,
+  TransactionType,
+} from './user.types.js';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject(REDIS_TOKEN) private readonly redis: Redis,
     private readonly userRepository: UserRepository,
+    private readonly kafkaService: KafkaService,
   ) {}
 
   async create(user: CreateUserDto): Promise<UserDto> {
@@ -111,5 +120,49 @@ export class UserService {
 
     await this.redis.del(user.login);
     await this.userRepository.deleteUser(id);
+  }
+
+  async changeBalance(params: EventTransactionSavedData): Promise<void> {
+    const { userId, amount, transactionType, transactionId, recipient } =
+      params;
+    let data: EventBalanceChangedData;
+
+    try {
+      if (!/^[1-9]\d*$/.test(amount))
+        throw new ConflictException('Invalid amount');
+      const user = await this.userRepository.findById(userId);
+      if (!user) throw new NotFoundException('User not found');
+
+      const currentBalance = BigInt(user.balance);
+      const value = BigInt(amount);
+      let newBalance: bigint;
+      if (transactionType === TransactionType.DEPOSIT) {
+        newBalance = currentBalance + value;
+      } else if (transactionType === TransactionType.WITHDRAWL) {
+        newBalance = currentBalance - value;
+      } else {
+        throw new ConflictException('Invalid transaction type');
+      }
+      if (newBalance < 0n) throw new ConflictException('Insufficient funds');
+
+      await this.userRepository.changeBalance({
+        userId,
+        balance: newBalance.toString(),
+      });
+      data = {
+        transactionId,
+        status: BalanceChangedStatus.COMPLETED,
+        recipient,
+        amount,
+      };
+    } catch {
+      data = { transactionId, status: BalanceChangedStatus.FAILED };
+    }
+
+    // A broker failure must propagate; it does not mean the DB update failed.
+    await this.kafkaService.produce({
+      eventName: EventNameEnum.BalanceChanged,
+      data,
+    });
   }
 }

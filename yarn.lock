@@ -338,6 +338,14 @@
     ora "5.4.1"
     undici "6.20.1"
 
+"@nestjs/microservices@12.0.4":
+  version "12.0.4"
+  resolved "https://registry.yarnpkg.com/@nestjs/microservices/-/microservices-12.0.4.tgz#719102e1288572f6763278aa082f2fd93a25a21b"
+  integrity sha512-+n+Rl5TIPxr0O9AbaRvIFXkYbOcHvGWnJ2U+a04WonoYlqTixtjaVEAJMKjc51k5JGm0yyPVjpCR0DdVFKT5hg==
+  dependencies:
+    iterare "1.2.1"
+    tslib "2.8.1"
+
 "@nestjs/platform-express@^12.0.1":
   version "12.0.4"
   resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-12.0.4.tgz#a7d1bf277d81d1a576da9872a77347f28e09fac8"
@@ -1828,6 +1836,11 @@ jsonc-parser@3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.3.1.tgz#f2a524b4f7fd11e3d791e559977ad60b98b798b4"
   integrity sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==
+
+kafkajs@^2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/kafkajs/-/kafkajs-2.2.4.tgz#59e6e16459d87fdf8b64be73970ed5aa42370a5b"
+  integrity sha512-j/YeapB1vfPT2iOIUn/vxdyKEuhuY2PxMBvf5JWux6iSaukAccrMtXEY/Lb7OvavDhOWME589bpLrEdnVHjfjA==
 
 libphonenumber-js@^1.11.1:
   version "1.13.13"

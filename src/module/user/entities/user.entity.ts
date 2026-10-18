@@ -38,6 +38,14 @@ export class UserEntity {
   @Column({ type: 'varchar', nullable: false, comment: 'Соль пароля пользователя' })
   passwordSalt: string;
 
+  @Column({
+    type: 'varchar',
+    nullable: false,
+    default: '0',
+    comment: 'Баланс в копейках',
+  })
+  balance: string;
+
   @CreateDateColumn({ type: 'timestamptz', nullable: false })
   createdAt: Date;
 

@@ -3,11 +3,17 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
+import { kafkaOptionsFactory } from './config/kafka/kafka.config.js';
+import { ensureKafkaTopics } from './config/kafka/kafka.bootstrap.js';
+import { EventNameEnum } from './module/user/user.types.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
   const globalPrefix = config.get<string>('HTTP_PREFIX', '/api/account');
+
+  app.enableShutdownHooks();
+  app.connectMicroservice(kafkaOptionsFactory());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -29,6 +35,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup(`${globalPrefix}/docs`, app, document);
 
+  await ensureKafkaTopics(Object.values(EventNameEnum));
+  await app.startAllMicroservices();
   await app.listen(config.get<number>('HTTP_PORT', 9000));
 }
 

@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
 import { UserEntity } from './entities/user.entity.js';
-import { CheckExistUserParams, FindUserParams } from './user.types.js';
+import {
+  ChangeBalanceParams,
+  CheckExistUserParams,
+  FindUserParams,
+} from './user.types.js';
 
 @Injectable()
 export class UserRepository {
@@ -38,6 +42,11 @@ export class UserRepository {
 
   async deleteUser(userId: string): Promise<void> {
     await this.userRepository.delete({ userId });
+  }
+
+  async changeBalance({ userId, balance }: ChangeBalanceParams): Promise<void> {
+    const result = await this.userRepository.update({ userId }, { balance });
+    if (!result.affected) throw new Error('User not found');
   }
 
   async checkExistUser(params: CheckExistUserParams): Promise<boolean> {
