@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export default class GetUserFilterDto {
   @ApiProperty({
@@ -11,6 +11,8 @@ export default class GetUserFilterDto {
   })
   @IsOptional()
   @IsString({ each: true })
+  @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
+  @IsArray()
   readonly userIds?: string[];
 
   @ApiProperty({
@@ -21,6 +23,8 @@ export default class GetUserFilterDto {
   })
   @IsOptional()
   @IsString({ each: true })
+  @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
+  @IsArray()
   readonly phones?: string[];
 
   @ApiProperty({
