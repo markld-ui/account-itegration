@@ -1,3 +1,11 @@
+# Account — ОНИ
+
+Общая инструкция по всем лабораторным, Docker Compose, Kubernetes и GitHub Actions:
+[RUNBOOK.md](RUNBOOK.md).
+
+Сквозная проверка после запуска системы: `node scripts/smoke.mjs` из Account.
+Workflow: [Account CI](https://github.com/markld-ui/account-itegration/actions).
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>

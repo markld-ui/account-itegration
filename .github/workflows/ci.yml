@@ -1,0 +1,60 @@
+name: Account CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: |
+          corepack prepare yarn@1.22.22 --activate
+          yarn install --frozen-lockfile
+      - name: Lint
+        run: yarn lint
+      - name: Unit tests
+        run: yarn test
+      - name: Build
+        run: yarn build
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: account
+      - uses: actions/checkout@v4
+        with:
+          repository: markld-ui/auth-itegration
+          ref: main
+          path: auth
+      - uses: actions/checkout@v4
+        with:
+          repository: markld-ui/transaction-itegration
+          ref: main
+          path: transaction
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build and start all services
+        run: docker compose -p oni-ci -f account/docker/docker-compose.yml up -d --build --wait --wait-timeout 240
+      - name: End-to-end business scenarios
+        run: node account/scripts/smoke.mjs
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose -p oni-ci -f account/docker/docker-compose.yml logs --no-color --tail=150
+      - name: Stop CI containers
+        if: always()
+        run: docker compose -p oni-ci -f account/docker/docker-compose.yml down
